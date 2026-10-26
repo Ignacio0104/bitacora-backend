@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id               String         @id @default(uuid())
+  firebaseUid      String         @unique @map("firebase_uid")
+  email            String         @unique
+  firstName        String?        @map("first_name")
+  lastName         String?        @map("last_name")
+  photoUrl         String?        @map("photo_url")
+  provider         String         // "google" | "password"
+  roles            String[]       @default([])
+  profileCompleted Boolean        @default(false) @map("profile_completed")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  lastLoginAt      DateTime?      @map("last_login_at")
+  refreshTokens    RefreshToken[]
+
+  @@map("users")
+}
+
+model Video {
+  id              String   @id @default(uuid())
+  title           String
+  youtubeId       String   @map("youtube_id")
+  thumbnailUrl    String   @map("thumbnail_url")
+  durationSeconds Int      @map("duration_seconds")
+  requiredRoles   String[] @default(["activeStudent"]) @map("required_roles")
+  published       Boolean  @default(false)
+  position        Int      @default(0)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("videos")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@map("refresh_tokens")
+}
