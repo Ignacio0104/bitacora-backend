@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  Patch,
   Post,
   Req,
   Res,
@@ -74,6 +75,28 @@ export class MeController {
   async me(@Req() req: Request & { user: { sub: string } }) {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: req.user.sub },
+    });
+    return publicUser(user);
+  }
+
+  @Patch()
+  async update(
+    @Req() req: Request & { user: { sub: string } },
+    @Body() body: { firstName?: string; lastName?: string },
+  ) {
+    const firstName = body?.firstName?.trim();
+    const lastName = body?.lastName?.trim();
+    if (
+      !firstName ||
+      !lastName ||
+      firstName.length > 60 ||
+      lastName.length > 60
+    ) {
+      throw new BadRequestException('Nombre y apellido son obligatorios');
+    }
+    const user = await this.prisma.user.update({
+      where: { id: req.user.sub },
+      data: { firstName, lastName, profileCompleted: true },
     });
     return publicUser(user);
   }
